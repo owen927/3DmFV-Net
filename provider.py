@@ -276,7 +276,7 @@ def load_single_model_class(clas = 'table',ind=0,test_train = 'train', file_idxs
         FILES = getDataFiles( \
             os.path.join(BASE_DIR, 'data/modelnet40_ply_hdf5_2048/test_files.txt'))
     all_models_points, all_models_labels = loadDataFile(FILES[file_idxs])
-    if  isinstance(clas,basestring):
+    if isinstance(clas, str):
         idxs = np.squeeze(np.where(np.squeeze(all_models_labels) == shape_dict[clas]))
     else:
         idxs = np.squeeze(np.where(np.squeeze(all_models_labels) == clas))
