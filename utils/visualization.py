@@ -15,8 +15,8 @@ import utils
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, 'utils/'))
-import pc_util
-import tf_util
+import utils.pc_util as pc_util
+import utils.tf_util as tf_util
 from skimage.transform import rescale, resize, downscale_local_mean
 import matplotlib.colors as mcolors
 import matplotlib.image as mpimg
