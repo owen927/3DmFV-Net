@@ -87,8 +87,6 @@ import math
 
 import numpy as np
 
-from functools import reduce
-
 
 _FLOAT_EPS_4 = np.finfo(float).eps * 4.0
 

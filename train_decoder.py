@@ -11,15 +11,15 @@ import tensorflow as tf
 import multiprocessing as mp
 import pickle
 
-import utils.visualization as visualization
+import visualization
 import provider
-import utils.utils as utils
+import utils
 import time
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, 'models'))
 sys.path.append(os.path.join(BASE_DIR, 'utils'))
-import utils.tf_util as tf_util
+import tf_util
 
 # ModelNet40/10 official train/test split
 MAX_N_POINTS = 2048

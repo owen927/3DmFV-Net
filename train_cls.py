@@ -14,10 +14,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, 'models'))
 sys.path.append(os.path.join(BASE_DIR, 'utils'))
-import utils.tf_util as tf_util
-import utils.visualization as visualization
+import tf_util
+import visualization
 import provider
-import utils.utils as utils
+import utils
 
 # ModelNet40 official train/test split. MOdelNet10 requires separate downloading and sampling.
 MAX_N_POINTS = 2048
