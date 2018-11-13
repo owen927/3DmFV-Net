@@ -6,7 +6,6 @@ import numpy as np
 
 import provider
 
-
 def get_gmm(points, n_gaussians, NUM_POINT, type='grid', variance=0.05, n_scales=3, D=3):
     """
     Compute weights, means and covariances for a gmm with two possible types 'grid' (2D/3D) and 'learned'
