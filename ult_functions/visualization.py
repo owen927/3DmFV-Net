@@ -1,27 +1,23 @@
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.cm as cm
 import sklearn.metrics
 import itertools
 import os
 import sys
-import pickle
 import tensorflow as tf
 
 import provider
-import utils
+import ult_functions
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
-sys.path.append(os.path.join(BASE_DIR, 'utils/'))
-import utils.pc_util as pc_util
-import utils.tf_util as tf_util
-from skimage.transform import rescale, resize, downscale_local_mean
+sys.path.append(os.path.join(BASE_DIR, 'ult_functions/'))
+import ult_functions.pc_util as pc_util
+import tf_util as tf_util
 import matplotlib.colors as mcolors
 import matplotlib.image as mpimg
 from mpl_toolkits.axes_grid1 import AxesGrid
-from mpl_toolkits.mplot3d import proj3d
+
 
 def axisEqual3D(ax):
     extents = np.array([getattr(ax, 'get_{}lim'.format(dim))() for dim in 'xyz'])
@@ -588,7 +584,7 @@ def visualize_fv_pc_clas():
         os.path.join(BASE_DIR, 'data/modelnet' + str(n_classes) + '_ply_hdf5_2048/shape_names.txt'))
     shape_dict = {shape_names[i]: i for i in range(len(shape_names))}
 
-    gmm = utils.get_grid_gmm(subdivisions=[subdev, subdev, subdev], variance=variance)
+    gmm = ult_functions.get_grid_gmm(subdivisions=[subdev, subdev, subdev], variance=variance)
     # compute fv
     w = tf.constant(gmm.weights_, dtype=tf.float32)
     mu = tf.constant(gmm.means_, dtype=tf.float32)
@@ -657,7 +653,7 @@ def main():
     #Create new gaussian
     subdev = 10
     variance = 0.01
-    gmm = utils.get_grid_gmm(subdivisions=[subdev, subdev, subdev], variance=variance)
+    gmm = ult_functions.get_grid_gmm(subdivisions=[subdev, subdev, subdev], variance=variance)
 
     class helper_struct():
         def __init__(self):
@@ -672,16 +668,16 @@ def main():
     n_gaussians = np.power(PARAMETERS.num_gaussians, 3) if PARAMETERS.gmm_type == 'grid' else PARAMETERS.num_gaussians
     points,_ = provider.load_single_model(model_idx = model_idx,test_train = 'train', file_idxs=0, num_points = num_points)
 
-    g_pts, g_probs = utils.get_gaussian_points(points, gmm, idx=gaussian_index, thresh=0.01)
+    g_pts, g_probs = ult_functions.get_gaussian_points(points, gmm, idx=gaussian_index, thresh=0.01)
     #draw_gaussian_points(points, g_pts, gmm, idx=gaussian_index, ax=None, display=True, color_val=g_probs)
 
-    #fv = utils.fisher_vector(points, gmm, normalization=True)
+    #fv = ult_functions.fisher_vector(points, gmm, normalization=True)
     # d_pi = fv[0:n_gaussians]
     # mean_d_pi = 0.02
     # ax=draw_point_cloud(points)
     # draw_gaussians(gmm, ax=ax, display=True, mappables=d_pi, thresh=mean_d_pi)
 
-    per_point_dpi,per_point_d_mu, per_point_d_sigma = utils.fisher_vector_per_point( points, gmm)
+    per_point_dpi,per_point_d_mu, per_point_d_sigma = ult_functions.fisher_vector_per_point(points, gmm)
     visualize_derivatives(points, gmm,gaussian_index,per_point_dpi, per_point_d_mu, per_point_d_sigma)
 
 
