@@ -1,25 +1,21 @@
 import os
 import sys
 import numpy as np
-from itertools import compress
 import matplotlib
 matplotlib.use('pdf')
-import matplotlib.pyplot as plt
 import importlib
 import argparse
 import tensorflow as tf
-import multiprocessing as mp
 import pickle
 
-import utils.visualization as visualization
 import provider
-import utils.utils as utils
-import time
+import ult_functions.utils as utils
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, 'models'))
-sys.path.append(os.path.join(BASE_DIR, 'utils'))
-import utils.tf_util as tf_util
+sys.path.append(os.path.join(BASE_DIR, 'ult_functions'))
+import tf_util as tf_util
 
 # ModelNet40/10 official train/test split
 MAX_N_POINTS = 2048

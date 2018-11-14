@@ -1,3 +1,7 @@
-
 .ipynb_checkpoints/test-checkpoint.ipynb
 __pycache__/provider.cpython-36.pyc
+.idea/*
+data/*
+log/*
+test.ipynb
+*.pyc

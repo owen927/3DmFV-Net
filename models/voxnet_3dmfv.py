@@ -1,15 +1,12 @@
 import tensorflow as tf
 import numpy as np
-import math
 import sys
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
-sys.path.append(os.path.join(BASE_DIR, '../utils'))
-import utils.tf_util as tf_util
-from models.transform_nets import feature_transform_net
-
+sys.path.append(os.path.join(BASE_DIR, '../ult_functions'))
+import tf_util as tf_util
 
 
 def placeholder_inputs(batch_size, n_points, gmm):
@@ -50,15 +47,15 @@ def get_model(points, w, mu, sigma, is_training, bn_decay=None, weigth_decay=0.0
 
     #3D Voxenet with pfv
     layer = 1
-    net = tf_util.conv3d(grid_fisher, 32, [5, 5, 5], scope='conv'+str(layer),
+    net = tf_util.conv3d(grid_fisher, 32, [5, 5, 5], scope='conv' + str(layer),
                          stride=[2, 2, 2], padding='SAME', bn=True,
                          bn_decay=bn_decay, is_training=is_training)
     layer = layer + 1
-    net = tf_util.conv3d(net, 32, [3, 3, 3], scope='conv'+str(layer),
+    net = tf_util.conv3d(net, 32, [3, 3, 3], scope='conv' + str(layer),
                          stride=[1, 1, 1], padding='SAME', bn=True,
                          bn_decay=bn_decay, is_training=is_training)
     layer = layer + 1
-    net = tf_util.max_pool3d(net, [2, 2, 2], scope='maxpool'+str(layer), stride=[2, 2, 2], padding='SAME')
+    net = tf_util.max_pool3d(net, [2, 2, 2], scope='maxpool' + str(layer), stride=[2, 2, 2], padding='SAME')
 
     net = tf.reshape(net,[batch_size, -1])
 
@@ -72,19 +69,19 @@ def get_model(points, w, mu, sigma, is_training, bn_decay=None, weigth_decay=0.0
     return net, fv
 
 def inception_module(input, n_filters=64, kernel_sizes=[3,5], is_training=None, bn_decay=None, scope='inception'):
-    one_by_one =  tf_util.conv3d(input, n_filters, [1,1,1], scope= scope + '_conv1',
-           stride=[1, 1, 1], padding='SAME', bn=True,
-           bn_decay=bn_decay, is_training=is_training)
-    three_by_three = tf_util.conv3d(one_by_one, int(n_filters/2), [kernel_sizes[0], kernel_sizes[0], kernel_sizes[0]], scope= scope + '_conv2',
-           stride=[1, 1, 1], padding='SAME', bn=True,
-           bn_decay=bn_decay, is_training=is_training)
-    five_by_five = tf_util.conv3d(one_by_one, int(n_filters/2), [kernel_sizes[1], kernel_sizes[1], kernel_sizes[1]], scope=scope + '_conv3',
-                          stride=[1, 1, 1], padding='SAME', bn=True,
-                          bn_decay=bn_decay, is_training=is_training)
-    average_pooling = tf_util.avg_pool3d(input, [kernel_sizes[0], kernel_sizes[0], kernel_sizes[0]], scope=scope+'_avg_pool', stride=[1, 1, 1], padding='SAME')
-    average_pooling = tf_util.conv3d(average_pooling, n_filters, [1,1,1], scope= scope + '_conv4',
-           stride=[1, 1, 1], padding='SAME', bn=True,
-           bn_decay=bn_decay, is_training=is_training)
+    one_by_one =  tf_util.conv3d(input, n_filters, [1, 1, 1], scope=scope + '_conv1',
+                                 stride=[1, 1, 1], padding='SAME', bn=True,
+                                 bn_decay=bn_decay, is_training=is_training)
+    three_by_three = tf_util.conv3d(one_by_one, int(n_filters / 2), [kernel_sizes[0], kernel_sizes[0], kernel_sizes[0]], scope=scope + '_conv2',
+                                    stride=[1, 1, 1], padding='SAME', bn=True,
+                                    bn_decay=bn_decay, is_training=is_training)
+    five_by_five = tf_util.conv3d(one_by_one, int(n_filters / 2), [kernel_sizes[1], kernel_sizes[1], kernel_sizes[1]], scope=scope + '_conv3',
+                                  stride=[1, 1, 1], padding='SAME', bn=True,
+                                  bn_decay=bn_decay, is_training=is_training)
+    average_pooling = tf_util.avg_pool3d(input, [kernel_sizes[0], kernel_sizes[0], kernel_sizes[0]], scope=scope + '_avg_pool', stride=[1, 1, 1], padding='SAME')
+    average_pooling = tf_util.conv3d(average_pooling, n_filters, [1, 1, 1], scope=scope + '_conv4',
+                                     stride=[1, 1, 1], padding='SAME', bn=True,
+                                     bn_decay=bn_decay, is_training=is_training)
 
     output = tf.concat([ one_by_one, three_by_three, five_by_five, average_pooling], axis=4)
     #output = output + tf.tile(input) ??? #resnet

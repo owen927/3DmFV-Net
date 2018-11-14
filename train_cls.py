@@ -13,11 +13,12 @@ import pickle
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, 'models'))
-sys.path.append(os.path.join(BASE_DIR, 'utils'))
-import utils.tf_util as tf_util
-import utils.visualization as visualization
+sys.path.append(os.path.join(BASE_DIR, 'ult_functions'))
+from ult_functions import utils as utils
+from ult_functions import visualization as visualization
+from ult_functions import tf_util as tf_util
 import provider
-import utils.utils as utils
+
 
 # ModelNet40 official train/test split. MOdelNet10 requires separate downloading and sampling.
 MAX_N_POINTS = 2048
@@ -38,7 +39,7 @@ augment_rotation, augment_scale, augment_translation, augment_jitter, augment_ou
 
 parser = argparse.ArgumentParser()
 #Parameters for learning
-parser.add_argument('--gpu', type=int, default=2, help='GPU to use [default: GPU 0]')
+parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU 0]')
 parser.add_argument('--model', default='3dmfv_net_cls', help='Model name [default: 3dmfv_net_cls]')
 parser.add_argument('--log_dir', default='log_trial', help='Log dir [default: log]')
 parser.add_argument('--num_point', type=int, default=1024, help='Point Number [256/512/1024/2048] [default: 1024]')
@@ -74,7 +75,7 @@ DECAY_RATE = FLAGS.decay_rate
 WEIGHT_DECAY = FLAGS.weight_decay
 
 MODEL = importlib.import_module(FLAGS.model) # import network module
-MODEL_FILE = os.path.join(BASE_DIR, 'models', FLAGS.model+'.py')
+MODEL_FILE = BASE_DIR + "/models/3dmfv_net_cls.py"#os.path.join(BASE_DIR, 'models', FLAGS.model+'.py')
 
 #Creat log directory ant prevent over-write by creating numbered subdirectories
 LOG_DIR = 'log/modelnet' + str(NUM_CLASSES) + '/' + FLAGS.model + '/'+ GMM_TYPE + str(N_GAUSSIANS) + '_' + FLAGS.log_dir
@@ -248,7 +249,7 @@ def train_one_epoch(sess, ops, gmm, train_writer):
         total_seen = 0
         loss_sum = 0
 
-        for batch_idx in range(num_batches):
+        for batch_idx in range(int(num_batches)):
             start_idx = batch_idx * BATCH_SIZE
             end_idx = (batch_idx + 1) * BATCH_SIZE
 
@@ -313,7 +314,7 @@ def eval_one_epoch(sess, ops, gmm, test_writer):
         file_size = current_data.shape[0]
         num_batches = file_size / BATCH_SIZE
 
-        for batch_idx in range(num_batches):
+        for batch_idx in range(int(num_batches)):
             start_idx = batch_idx * BATCH_SIZE
             end_idx = (batch_idx + 1) * BATCH_SIZE
 
@@ -417,7 +418,7 @@ def export_visualizations(gmm, log_dir):
                 file_size = current_data.shape[0]
                 num_batches = file_size / BATCH_SIZE
 
-                for batch_idx in range(num_batches):
+                for batch_idx in range(int(num_batches)):
                     start_idx = batch_idx * BATCH_SIZE
                     end_idx = (batch_idx + 1) * BATCH_SIZE
 
@@ -438,12 +439,12 @@ def export_visualizations(gmm, log_dir):
 
     # Export Confusion Matrix
     visualization.visualize_confusion_matrix(true_labels, all_pred_labels, classes=LABEL_MAP, normalize=False, export=True,
-                               display=False, filename=os.path.join(log_dir,'confusion_mat'), n_classes=NUM_CLASSES)
+                                             display=False, filename=os.path.join(log_dir,'confusion_mat'), n_classes=NUM_CLASSES)
 
     # Export Fishre Vector Visualization
     label_tags = [LABEL_MAP[i] for i in true_labels]
-    visualization.visualize_fv(all_fv_data, gmm, label_tags,  export=True,
-                               display=False,filename=os.path.join(log_dir,'fisher_vectors'))
+    visualization.visualize_fv(all_fv_data, gmm, label_tags, export=True,
+                               display=False, filename=os.path.join(log_dir,'fisher_vectors'))
     # plt.show() #uncomment this to see the images in addition to saving them
     print("Confusion matrix and Fisher vectores were saved to /" + str(log_dir))
 
