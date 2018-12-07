@@ -78,27 +78,29 @@ MODEL = importlib.import_module(FLAGS.model) # import network module
 MODEL_FILE = BASE_DIR + "/models/3dmfv_net_cls.py"#os.path.join(BASE_DIR, 'models', FLAGS.model+'.py')
 
 #Creat log directory ant prevent over-write by creating numbered subdirectories
-LOG_DIR = 'log/modelnet' + str(NUM_CLASSES) + '/' + FLAGS.model + '/'+ GMM_TYPE + str(N_GAUSSIANS) + '_' + FLAGS.log_dir
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR)
-else:
-    print('Log dir already exists! creating a new one..............')
-    n = 0
-    while True:
-        n+=1
-        new_log_dir = LOG_DIR+'/'+str(n)
-        if not os.path.exists(new_log_dir):
-            os.makedirs(new_log_dir)
-            print('New log dir:'+new_log_dir)
-            break
-    FLAGS.log_dir = new_log_dir
-    LOG_DIR = new_log_dir
+LOG_DIR = 'log/modelnet40/3dmfv_net_cls/grid5_log_trial/1'#'log/modelnet' + str(NUM_CLASSES) + '/' + FLAGS.model + '/'+ GMM_TYPE + str(N_GAUSSIANS) + '_' + FLAGS.log_dir
 
 
+# if not os.path.exists(LOG_DIR):
+#     os.makedirs(LOG_DIR)
+# else:
+#     print('Log dir already exists! creating a new one..............')
+#     n = 0
+#     while True:
+#         n+=1
+#         new_log_dir = LOG_DIR+'/'+str(n)
+#         if not os.path.exists(new_log_dir):
+#             os.makedirs(new_log_dir)
+#             print('New log dir:'+new_log_dir)
+#             break
+#     FLAGS.log_dir = new_log_dir
+#     LOG_DIR = new_log_dir
+#
+#
 os.system('cp %s %s' % (MODEL_FILE, LOG_DIR)) # bkp of model def
 os.system('cp train_cls.py %s' % (LOG_DIR)) # bkp of train procedure
 pickle.dump(FLAGS, open( os.path.join(LOG_DIR, 'parameters.p'), "wb" ) )
-
+#
 LOG_FOUT = open(os.path.join(LOG_DIR, 'log_train.txt'), 'w')
 LOG_FOUT.write(str(FLAGS)+'\n')
 LOG_FOUT.write("augmentation RSTJ = " + str((augment_rotation, augment_scale, augment_translation, augment_jitter, augment_outlier))) #log augmentaitons
@@ -266,7 +268,7 @@ def train_one_epoch(sess, ops, gmm, train_writer):
                 augmented_data = provider.jitter_point_cloud(augmented_data, sigma=0.01,
                                                         clip=0.05)  # default sigma=0.01, clip=0.05
             if augment_outlier:
-                augmented_data = provider.insert_outliers_to_point_cloud(augmented_data, outlier_ratio=0.02)
+                augmented_data = provider.insert_outliers_ot_point_cloud(augmented_data, outlier_ratio=0.02)
 
             feed_dict = {ops['points_pl']: augmented_data,
                          ops['labels_pl']: current_label[start_idx:end_idx],
@@ -452,9 +454,11 @@ def export_visualizations(gmm, log_dir):
 if __name__ == "__main__":
 
     gmm = utils.get_3d_grid_gmm(subdivisions=[N_GAUSSIANS, N_GAUSSIANS, N_GAUSSIANS], variance=GMM_VARIANCE)
-    pickle.dump(gmm, open(os.path.join(LOG_DIR, 'gmm.p'), "wb"))
-    train(gmm)
-    #export_visualizations(gmm, LOG_DIR,n_model_limit=None)
+   # pickle.dump(gmm, open(os.path.join(LOG_DIR, 'gmm.p'), "wb"))
+   # train(gmm)
+
+    Log_DIR = 'log/modelnet40/3dmfv_net_cls/grid5_log_trial/1'
+    export_visualizations(gmm, LOG_DIR)
 
     LOG_FOUT.close()
 

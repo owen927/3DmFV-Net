@@ -13,7 +13,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, 'ult_functions/'))
 import ult_functions.pc_util as pc_util
-import tf_util as tf_util
+import ult_functions.tf_util as tf_util
 import matplotlib.colors as mcolors
 import matplotlib.image as mpimg
 from mpl_toolkits.axes_grid1 import AxesGrid

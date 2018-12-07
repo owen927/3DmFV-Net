@@ -6,7 +6,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, '../ult_functions'))
-import tf_util as tf_util
+import ult_functions.tf_util as tf_util
 
 
 def placeholder_inputs(batch_size, n_points, gmm):
