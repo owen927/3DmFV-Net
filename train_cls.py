@@ -43,7 +43,7 @@ parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU
 parser.add_argument('--model', default='3dmfv_net_cls', help='Model name [default: 3dmfv_net_cls]')
 parser.add_argument('--log_dir', default='log_trial', help='Log dir [default: log]')
 parser.add_argument('--num_point', type=int, default=1024, help='Point Number [256/512/1024/2048] [default: 1024]')
-parser.add_argument('--max_epoch', type=int, default=200, help='Epoch to run [default: 200]')
+parser.add_argument('--max_epoch', type=int, default=20, help='Epoch to run [default: 200]')
 parser.add_argument('--batch_size', type=int, default=64, help='Batch Size during training [default: 64]')
 parser.add_argument('--learning_rate', type=float, default=0.001, help='Initial learning rate [default: 0.001]')
 parser.add_argument('--momentum', type=float, default=0.9, help='Initial learning rate [default: 0.9]')
@@ -81,22 +81,22 @@ MODEL_FILE = BASE_DIR + "/models/3dmfv_net_cls.py"#os.path.join(BASE_DIR, 'model
 LOG_DIR = 'log/modelnet40/3dmfv_net_cls/grid5_log_trial/1'#'log/modelnet' + str(NUM_CLASSES) + '/' + FLAGS.model + '/'+ GMM_TYPE + str(N_GAUSSIANS) + '_' + FLAGS.log_dir
 
 
-# if not os.path.exists(LOG_DIR):
-#     os.makedirs(LOG_DIR)
-# else:
-#     print('Log dir already exists! creating a new one..............')
-#     n = 0
-#     while True:
-#         n+=1
-#         new_log_dir = LOG_DIR+'/'+str(n)
-#         if not os.path.exists(new_log_dir):
-#             os.makedirs(new_log_dir)
-#             print('New log dir:'+new_log_dir)
-#             break
-#     FLAGS.log_dir = new_log_dir
-#     LOG_DIR = new_log_dir
-#
-#
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+else:
+    print('Log dir already exists! creating a new one..............')
+    n = 0
+    while True:
+        n+=1
+        new_log_dir = LOG_DIR+'/'+str(n)
+        if not os.path.exists(new_log_dir):
+            os.makedirs(new_log_dir)
+            print('New log dir:'+new_log_dir)
+            break
+    FLAGS.log_dir = new_log_dir
+    LOG_DIR = new_log_dir
+
+
 os.system('cp %s %s' % (MODEL_FILE, LOG_DIR)) # bkp of model def
 os.system('cp train_cls.py %s' % (LOG_DIR)) # bkp of train procedure
 pickle.dump(FLAGS, open( os.path.join(LOG_DIR, 'parameters.p'), "wb" ) )
@@ -116,6 +116,7 @@ LIMIT_GPU = True
 
 MAX_ACCURACY = 0.0
 MAX_CLASS_ACCURACY = 0.0
+
 
 def log_string(out_str):
     LOG_FOUT.write(out_str+'\n')
@@ -268,7 +269,7 @@ def train_one_epoch(sess, ops, gmm, train_writer):
                 augmented_data = provider.jitter_point_cloud(augmented_data, sigma=0.01,
                                                         clip=0.05)  # default sigma=0.01, clip=0.05
             if augment_outlier:
-                augmented_data = provider.insert_outliers_ot_point_cloud(augmented_data, outlier_ratio=0.02)
+                augmented_data = provider.insert_outliers_to_point_cloud(augmented_data, outlier_ratio=0.02)
 
             feed_dict = {ops['points_pl']: augmented_data,
                          ops['labels_pl']: current_label[start_idx:end_idx],
@@ -454,8 +455,8 @@ def export_visualizations(gmm, log_dir):
 if __name__ == "__main__":
 
     gmm = utils.get_3d_grid_gmm(subdivisions=[N_GAUSSIANS, N_GAUSSIANS, N_GAUSSIANS], variance=GMM_VARIANCE)
-   # pickle.dump(gmm, open(os.path.join(LOG_DIR, 'gmm.p'), "wb"))
-   # train(gmm)
+    pickle.dump(gmm, open(os.path.join(LOG_DIR, 'gmm.p'), "wb"))
+    train(gmm)
 
     Log_DIR = 'log/modelnet40/3dmfv_net_cls/grid5_log_trial/1'
     export_visualizations(gmm, LOG_DIR)
