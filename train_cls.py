@@ -21,16 +21,27 @@ import provider
 
 
 # ModelNet40 official train/test split. MOdelNet10 requires separate downloading and sampling.
-MAX_N_POINTS = 2048
-NUM_CLASSES = 40
-TRAIN_FILES = provider.getDataFiles( \
-    os.path.join(BASE_DIR, 'data/modelnet'+str(NUM_CLASSES)+'_ply_hdf5_'+ str(MAX_N_POINTS)+ '/train_files.txt'))
-TEST_FILES = provider.getDataFiles(\
-    os.path.join(BASE_DIR, 'data/modelnet'+str(NUM_CLASSES)+'_ply_hdf5_'+ str(MAX_N_POINTS)+ '/test_files.txt'))
-LABEL_MAP = provider.getDataFiles(\
-    os.path.join(BASE_DIR, 'data/modelnet'+str(NUM_CLASSES)+'_ply_hdf5_'+ str(MAX_N_POINTS)+ '/shape_names.txt'))
+MAX_N_POINTS = 512
+NUM_CLASSES = 7
+TRAIN_FILES = provider.getDataFiles(
+    os.path.join(BASE_DIR, 'data/test_data_hdf5_512' + '/train_files.txt'))
+TEST_FILES = provider.getDataFiles(
+    os.path.join(BASE_DIR,  'data/test_data_hdf5_512' + '/test_files.txt'))
+LABEL_MAP = provider.getDataFiles(
+    os.path.join(BASE_DIR,  'data/test_data_hdf5_512' + '/shape_names.txt'))
 
-print( "Loading Modelnet" + str(NUM_CLASSES))
+
+
+# ModelNet40 official train/test split. MOdelNet10 requires separate downloading and sampling.
+# MAX_N_POINTS = 2048
+# NUM_CLASSES = 40
+# TRAIN_FILES = provider.getDataFiles( \
+#     os.path.join(BASE_DIR, 'data/modelnet'+str(NUM_CLASSES)+'_ply_hdf5_'+ str(MAX_N_POINTS)+ '/train_files.txt'))
+# TEST_FILES = provider.getDataFiles(\
+#     os.path.join(BASE_DIR, 'data/modelnet'+str(NUM_CLASSES)+'_ply_hdf5_'+ str(MAX_N_POINTS)+ '/test_files.txt'))
+# LABEL_MAP = provider.getDataFiles(\
+# os.path.join(BASE_DIR, 'data/modelnet'+str(NUM_CLASSES)+'_ply_hdf5_'+ str(MAX_N_POINTS)+ '/shape_names.txt'))
+# print( "Loading Modelnet" + str(NUM_CLASSES))
 
 #Execute
 #python train_cls.py  --gpu=0 --log_dir='log' --batch_size=64 --num_point=1024 --num_gaussians=8 --gmm_variance=0.0156 --gmm_type='grid' --learning_rate=0.001  --model='voxnet_pfv' --max_epoch=200 --momentum=0.9 --optimizer='adam' --decay_step=200000  --weight_decay=0.0 --decay_rate=0.7
@@ -42,11 +53,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU 0]')
 parser.add_argument('--model', default='3dmfv_net_cls', help='Model name [default: 3dmfv_net_cls]')
 parser.add_argument('--log_dir', default='log_trial', help='Log dir [default: log]')
-parser.add_argument('--num_point', type=int, default=1024, help='Point Number [256/512/1024/2048] [default: 1024]')
+parser.add_argument('--num_point', type=int, default=256, help='Point Number [256/512/1024/2048] [default: 1024]')
 parser.add_argument('--max_epoch', type=int, default=20, help='Epoch to run [default: 200]')
-parser.add_argument('--batch_size', type=int, default=64, help='Batch Size during training [default: 64]')
-parser.add_argument('--learning_rate', type=float, default=0.001, help='Initial learning rate [default: 0.001]')
-parser.add_argument('--momentum', type=float, default=0.9, help='Initial learning rate [default: 0.9]')
+parser.add_argument('--batch_size', type=int, default=8, help='Batch Size during training [default: 64]')
+parser.add_argument('--learning_rate', type=float, default=0.9, help='Initial learning rate [default: 0.001]')
+parser.add_argument('--momentum', type=float, default=0.01, help='Initial learning rate [default: 0.9]')
 parser.add_argument('--optimizer', default='adam', help='adam or momentum [default: adam]')
 parser.add_argument('--decay_step', type=int, default=200000, help='Decay step for lr decay [default: 200000]')
 parser.add_argument('--decay_rate', type=float, default=0.7, help='Decay rate for lr decay [default: 0.7]')
@@ -75,11 +86,10 @@ DECAY_RATE = FLAGS.decay_rate
 WEIGHT_DECAY = FLAGS.weight_decay
 
 MODEL = importlib.import_module(FLAGS.model) # import network module
-MODEL_FILE = BASE_DIR + "/models/3dmfv_net_cls.py"#os.path.join(BASE_DIR, 'models', FLAGS.model+'.py')
+MODEL_FILE = os.path.join(BASE_DIR, 'models', FLAGS.model+'.py')
 
 #Creat log directory ant prevent over-write by creating numbered subdirectories
-LOG_DIR = 'log/modelnet40/3dmfv_net_cls/grid5_log_trial/1'#'log/modelnet' + str(NUM_CLASSES) + '/' + FLAGS.model + '/'+ GMM_TYPE + str(N_GAUSSIANS) + '_' + FLAGS.log_dir
-
+LOG_DIR = 'log/modelnet' + str(NUM_CLASSES) + '/' + FLAGS.model + '/'+ GMM_TYPE + str(N_GAUSSIANS) + '_' + FLAGS.log_dir
 
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
@@ -240,7 +250,7 @@ def train_one_epoch(sess, ops, gmm, train_writer):
         log_string('----' + str(fn) + '-----')
         current_data, current_label = provider.loadDataFile(TRAIN_FILES[train_file_idxs[fn]], compensate = False)
         # points_idx = range(0,NUM_POINT)
-        points_idx = np.random.choice(range(0,2048),NUM_POINT)
+        points_idx = np.random.choice(range(0,MAX_N_POINTS),NUM_POINT)
         current_data = current_data[:, points_idx, :]
         current_data, current_label, _ = provider.shuffle_data(current_data, np.squeeze(current_label))
         current_label = np.squeeze(current_label)
@@ -286,8 +296,11 @@ def train_one_epoch(sess, ops, gmm, train_writer):
             correct = np.sum(pred_val == current_label[start_idx:end_idx])
             total_correct += correct
             total_seen += BATCH_SIZE
+            log_string('loss_val: %f' % loss_val)
             loss_sum += loss_val
 
+        log_string('loss_sum: %f' % loss_sum)
+        log_string('num_batches: %f' % float(num_batches))
         log_string('mean loss: %f' % (loss_sum / float(num_batches)))
         log_string('accuracy: %f' % (total_correct / float(total_seen)))
 
@@ -308,6 +321,8 @@ def eval_one_epoch(sess, ops, gmm, test_writer):
     # points_idx = np.random.choice(range(0, 2048), NUM_POINT)
     points_idx = range(NUM_POINT)
 
+    flag = False
+
     for fn in range(len(TEST_FILES)):
         log_string('----' + str(fn) + '-----')
         current_data, current_label = provider.loadDataFile(TEST_FILES[fn], compensate=False)
@@ -316,6 +331,8 @@ def eval_one_epoch(sess, ops, gmm, test_writer):
 
         file_size = current_data.shape[0]
         num_batches = file_size / BATCH_SIZE
+        print(str(file_size))
+        print(str(BATCH_SIZE))
 
         for batch_idx in range(int(num_batches)):
             start_idx = batch_idx * BATCH_SIZE
@@ -340,6 +357,9 @@ def eval_one_epoch(sess, ops, gmm, test_writer):
             fail_cases_false_labes = pred_val[np.where(false_idx)]  if batch_idx==0 else np.concatenate([fail_cases_false_labes, pred_val[np.where(false_idx)]])
             fail_cases_idx = false_idx if batch_idx == 0 else np.concatenate([fail_cases_idx, false_idx])
 
+            if batch_idx == 0:
+                flag = True
+
             total_correct += correct
             total_seen += BATCH_SIZE
             loss_sum += (loss_val * BATCH_SIZE)
@@ -348,9 +368,11 @@ def eval_one_epoch(sess, ops, gmm, test_writer):
                 total_seen_class[l] += 1
                 total_correct_class[l] += (pred_val[i - start_idx] == l)
 
+
         fail_cases_true_labels_final.append(fail_cases_true_labels)
         fail_cases_false_labes_final.append(fail_cases_false_labes)
         fail_cases_idx_final.append(fail_cases_idx)
+
     acc = total_correct / float(total_seen)
     acc_avg_cls =  np.mean(np.array(total_correct_class) / np.array(total_seen_class, dtype=np.float))
     log_string('eval mean loss: %f' % (loss_sum / float(total_seen)))
